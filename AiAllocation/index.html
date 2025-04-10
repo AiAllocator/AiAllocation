@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AiAllocation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #ffffff;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 40px;
+    }
+
+    .logo {
+      height: 160px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 30px;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .prompt-box {
+      width: 100%;
+      max-width: 600px;
+      padding: 0 20px;
+    }
+
+    .prompt-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .copy-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .copy-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #888;
+    }
+
+    .copy-icon:hover svg {
+      fill: #4caf50;
+    }
+
+    .results {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .ai-card {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .ai-card img {
+      height: 40px;
+      margin-bottom: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .ai-card img:hover {
+      transform: scale(1.05);
+    }
+
+    .ai-card a {
+      text-decoration: none;
+      color: #0077cc;
+      font-weight: 500;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <img src="static/logo.png" alt="AIAllocation Logo" class="logo" />
+  <div class="title">AiAllocation</div>
+  <div class="subtitle">Enter your prompt and you will be allocated the best AI for your task.</div>
+
+  <div class="prompt-box">
+    <div class="prompt-wrapper">
+      <input type="text" id="promptInput" placeholder="Type your prompt here..." />
+      <div class="copy-icon" id="copyIcon" title="Prompt copied to clipboard">
+        <!-- Clipboard SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    const toolLinks = {
+      "ChatGPT": "https://chat.openai.com/",
+      "Claude": "https://claude.ai/",
+      "Gemini": "https://gemini.google.com/",
+      "DeepSeek": "https://chat.deepseek.com/",
+      "Synthesia": "https://app.synthesia.io/",
+      "Runway": "https://runwayml.com/",
+      "Filmora": "https://filmora.wondershare.com/",
+      "OpusClip": "https://www.opus.pro/",
+      "Fathom": "https://fathom.video/",
+      "Nyota": "https://www.nyota.ai/",
+      "Deep Research": "https://www.deepresearch.ai/",
+      "Rytr": "https://app.rytr.me/",
+      "Sudowrite": "https://www.sudowrite.com/",
+      "Grammarly": "https://app.grammarly.com/",
+      "Wordtune": "https://www.wordtune.com/",
+      "Perplexity": "https://www.perplexity.ai/",
+      "ChatGPT-Suche": "https://chat.openai.com/",
+      "Vista Social": "https://vistasocial.com/",
+      "FeedHive": "https://feedhive.io/",
+      "Midjourney": "https://www.midjourney.com/app/",
+      "DALL·E 3": "https://openai.com/dall-e",
+      "Synthesia Magic Studio": "https://www.synthesia.io/magic",
+      "Looka": "https://looka.com/",
+      "Bubble": "https://bubble.io/",
+      "Bolt": "https://www.bolt.ai/",
+      "Lovable": "https://www.lovable.so/",
+      "Cursor": "https://www.cursor.so/",
+      "v0": "https://v0.dev/",
+      "Asana": "https://app.asana.com/",
+      "ClickUp": "https://clickup.com/",
+      "Reclaim": "https://reclaim.ai/",
+      "Clockwise": "https://www.getclockwise.com/",
+      "Tidio KI": "https://www.tidio.com/",
+      "Hiver": "https://hiverhq.com/",
+      "Textio": "https://textio.com/",
+      "CVViZ": "https://www.cvviz.com/",
+      "Notion AI Q&A": "https://www.notion.so/ai",
+      "Guru": "https://www.getguru.com/",
+      "Hubspot Email Writer": "https://www.hubspot.com/email-templates",
+      "SaneBox": "https://www.sanebox.com/",
+      "Kurzwelle": "https://kurzwelle.app/",
+      "Gamma": "https://gamma.app/",
+      "Presentations.ai": "https://www.presentations.ai/",
+      "Teal": "https://app.tealhq.com/resume",
+      "Kickresume": "https://www.kickresume.com/en/resume-builder/",
+      "ElevenLabs": "https://www.elevenlabs.io/",
+      "Murf": "https://murf.ai/",
+      "Suno": "https://www.suno.ai/",
+      "Udio": "https://www.udio.com/",
+      "AdCreative": "https://www.adcreative.ai/",
+      "Clay": "https://clay.earth/"
+    };
+
+    const promptInput = document.getElementById("promptInput");
+    const results = document.getElementById("results");
+    const copyIcon = document.getElementById("copyIcon");
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copyIcon.style.display = "inline-flex";
+      } catch (err) {
+        console.error("Clipboard error:", err);
+      }
+    }
+
+    promptInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        const prompt = promptInput.value.trim();
+        if (!prompt) return;
+
+        await copyToClipboard(prompt); // copy + show icon
+
+        results.innerHTML = "<p>Loading suggestions...</p>";
+
+        try {
+          const res = await fetch("http://127.0.0.1:5000/analyze", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+          });
+
+          const data = await res.json();
+
+          if (data.error) {
+            results.innerHTML = `<p><strong>Error:</strong> ${data.error}</p>`;
+            if (data.raw) console.warn("Raw response:", data.raw);
+            return;
+          }
+
+          const tools = data.tools;
+          const category = data.category;
+
+          results.innerHTML = `<h3>Top AI tools for: ${category}</h3>`;
+          tools.forEach((tool) => {
+            const name = tool.name;
+            const reason = tool.reason;
+            const logoPath = `static/logos/${tool.logo}`;
+            const url = toolLinks[name] || `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+
+            results.innerHTML += `
+              <div class="ai-card">
+                <a href="${url}" target="_blank">
+                  <img src="${logoPath}" alt="${name} Logo" />
+                  <div>${name}</div>
+                </a>
+                <p>${reason}</p>
+              </div>`;
+          });
+        } catch (err) {
+          results.innerHTML = `<p>Something went wrong. Please try again later.</p>`;
+          console.error(err);
+        }
+      }
+    });
+
+    copyIcon.addEventListener("click", () => {
+      const prompt = promptInput.value.trim();
+      if (prompt) {
+        copyToClipboard(prompt);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
